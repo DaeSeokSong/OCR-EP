@@ -29,7 +29,10 @@ android {
 }
 
 dependencies {
+    // OCR
+    implementation 'com.rmtheis:tess-two:9.1.0'
 
+    // Default
     implementation 'androidx.appcompat:appcompat:1.3.1'
     implementation 'com.google.android.material:material:1.4.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
