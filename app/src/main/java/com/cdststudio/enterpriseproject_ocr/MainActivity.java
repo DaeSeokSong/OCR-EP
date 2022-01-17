@@ -1,6 +1,8 @@
 package com.cdststudio.enterpriseproject_ocr;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 
@@ -10,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 
@@ -21,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
@@ -35,9 +39,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
-
-    Bitmap image; //사용되는 이미지
     private TessBaseAPI mTess; //Tess API reference
+    Bitmap image; //사용되는 이미지
     String datapath = "" ; //언어데이터가 있는 경로
 
     Button btn_picture; //사진 찍는 버튼
@@ -53,6 +56,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 권한 체크
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 1000);
+            }
+        } else {
+
+        }
+
         btn_picture = (Button)findViewById(R.id.takePicture);
         btn_ocr = (Button)findViewById(R.id.ocrButton);
 
@@ -60,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
         datapath = getFilesDir()+ "/tesseract/";
 
         //트레이닝데이터가 카피되어 있는지 체크
-        checkFile(new File(datapath + "ocr-data/"), "kor");
-        checkFile(new File(datapath + "ocr-data/"), "eng");
-        checkFile(new File(datapath + "ocr-data/"), "jpn");
+        checkFile(new File(datapath + "tessdata/"), "kor");
+        checkFile(new File(datapath + "tessdata/"), "eng");
+        checkFile(new File(datapath + "tessdata/"), "jpn");
 
         /**
          * Tesseract API
@@ -187,13 +199,13 @@ public class MainActivity extends AppCompatActivity {
     private void copyFiles(String lang) {
         try{
             //파일이 있을 위치
-            String filepath = datapath + "/ocr-data/"+lang+".traineddata";
+            String filepath = datapath + "/tessdata/" +lang+".traineddata";
 
             //AssetManager에 액세스
             AssetManager assetManager = getAssets();
 
             //읽기/쓰기를 위한 열린 바이트 스트림
-            InputStream instream = assetManager.open("ocr-data/"+lang+".traineddata");
+            InputStream instream = assetManager.open("tessdata/" +lang+".traineddata");
             OutputStream outstream = new FileOutputStream(filepath);
 
             //filepath에 의해 지정된 위치에 파일 복사
@@ -222,7 +234,7 @@ public class MainActivity extends AppCompatActivity {
         }
         //디렉토리가 있지만 파일이 없으면 파일카피 진행
         if(dir.exists()) {
-            String datafilepath = datapath+ "/ocr-data/"+lang+".traineddata";
+            String datafilepath = datapath+ "/tessdata/" +lang+".traineddata";
             File datafile = new File(datafilepath);
             if(!datafile.exists()) {
                 copyFiles(lang);
